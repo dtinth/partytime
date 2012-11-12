@@ -1,11 +1,15 @@
 package com.github.dtinth.partytime.server;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
@@ -45,8 +49,22 @@ public class ServerUI extends JFrame implements Observer, Runnable {
         setLayout(new BorderLayout());
         setTitle("Party Time Server!");
         
+        JButton button = new JButton("Start!");
+        button.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                server.startGame();
+            }
+        });
+        
         label = new JLabel("Status will display here...");
-        add(label, BorderLayout.NORTH);
+        
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(label);
+        panel.add(button, BorderLayout.EAST);
+        
+        add(panel, BorderLayout.NORTH);
         tableModel = new ConnectionsTableModel();
         
         table = new JTable(tableModel);

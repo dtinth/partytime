@@ -22,6 +22,8 @@ public class Server extends Observable implements Runnable, ConnectionDelegate {
     private String status = "Creating server...";
     private final List<Connection> connections = new LinkedList<Connection>();
     private ServerSocket server;
+    
+    /*
     private Timer timer = new Timer();
     private GameTimer gameTimer;
     
@@ -38,26 +40,33 @@ public class Server extends Observable implements Runnable, ConnectionDelegate {
             timeLeft --;
             setStatus("Waiting for more players... [" + timeLeft + "]");
             if (timeLeft <= 0) {
-                List<Connection> list = new LinkedList<Connection>(connections);
-                connections.clear();
-                long time = System.currentTimeMillis() + 5000;
-                for (Connection connection : list) {
-                    connection.go(time, list.size());
-                }
-                setStatus("Game started!");
+     startGame();
             }
         }
         
         public void reset() {
-            timeLeft = 10;
+            timeLeft = 30;
         }
         
+    }
+     */
+    
+    public void startGame() {
+        List<Connection> list = new LinkedList<Connection>(connections);
+        connections.clear();
+        long time = System.currentTimeMillis() + 5000;
+        for (Connection connection : list) {
+            connection.go(time, list.size());
+        }
+        setStatus("Game started!");
     }
     
     @Override
     public void run() {
+        /*
         gameTimer = new GameTimer();
         timer.schedule(gameTimer, 1000, 1000);
+         */
         setStatus("Starting server...");
         try {
             server = new ServerSocket(PORT);
@@ -66,7 +75,7 @@ public class Server extends Observable implements Runnable, ConnectionDelegate {
                 Socket socket = server.accept();
                 Connection connection = new Connection(socket, this);
                 new Thread(connection).start();
-                gameTimer.reset();
+                // gameTimer.reset();
                 connections.add(connection);
             }
         } catch (IOException ex) {
