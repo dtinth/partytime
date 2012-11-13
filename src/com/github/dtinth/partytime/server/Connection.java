@@ -72,7 +72,12 @@ public class Connection implements Runnable {
     }
     
     public void go(long time, int players) {
-        writer.println("status:" + players + "-person play");
+        String text = players + "";
+        if (players == 1) text = "SINGLE";
+        else if (players == 2) text = "TWO";
+        else if (players == 3) text = "THREE";
+        else if (players == 4) text = "FOUR";
+        writer.println("status:" + text + "-PERSON PLAY");
         writer.println("play:" + (time + offset));
         close();
     }
