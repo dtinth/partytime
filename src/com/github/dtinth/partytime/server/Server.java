@@ -16,40 +16,32 @@ import java.util.logging.Logger;
  *
  * @author Thai Pangsakulyanont
  */
-public class Server extends Observable implements Runnable, ConnectionDelegate {
-    public static final int PORT = 7273;
+public class Server extends Observable implements Runnable {
     
     private String status = "Creating server...";
     private final List<Connection> connections = new LinkedList<Connection>();
     private ServerSocket server;
+    private final ConnectionDelegate connectionDelegate = new ServerConnectionDelegate();
     
-    /*
-    private Timer timer = new Timer();
-    private GameTimer gameTimer;
+    private int port;
     
-    private class GameTimer extends TimerTask {
-        
-        private int timeLeft;
-
-        @Override
-        public void run() {
-            if (connections.isEmpty()) {
-                setStatus("Waiting for players...");
-                return;
-            }
-            timeLeft --;
-            setStatus("Waiting for more players... [" + timeLeft + "]");
-            if (timeLeft <= 0) {
-     startGame();
-            }
-        }
-        
-        public void reset() {
-            timeLeft = 30;
-        }
-        
+    public Server(int port) {
+        this.port = port;
     }
-     */
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+    
+    public Thread start() {
+        Thread thread = new Thread(this);
+        thread.start();
+        return thread;
+    }
     
     public void startGame() {
         List<Connection> list = new LinkedList<Connection>(connections);
@@ -58,27 +50,25 @@ public class Server extends Observable implements Runnable, ConnectionDelegate {
         for (Connection connection : list) {
             connection.go(time, list.size());
         }
-        setStatus("Game started!");
+        //setStatus("Game will start in 5 seconds... Listening on port " + port);
+        setChanged();
+        notifyObservers();
     }
     
     @Override
     public void run() {
-        /*
-        gameTimer = new GameTimer();
-        timer.schedule(gameTimer, 1000, 1000);
-         */
         setStatus("Starting server...");
         try {
-            server = new ServerSocket(PORT);
-            setStatus("Listening on port " + PORT);
+            server = new ServerSocket(port);
             while (true) {
+                setStatus("Listening on port " + port);
                 Socket socket = server.accept();
-                Connection connection = new Connection(socket, this);
+                Connection connection = new Connection(socket, connectionDelegate);
                 new Thread(connection).start();
                 // gameTimer.reset();
                 connections.add(connection);
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             setStatus("Cannot start server: " + ex.getMessage());
             ex.printStackTrace();
         }
@@ -87,9 +77,16 @@ public class Server extends Observable implements Runnable, ConnectionDelegate {
     public void stop() {
         try {
             server.close();
+            System.out.println("Server is closed!");
+            setChanged();
+            notifyObservers();
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public boolean isClosed() {
+        return server.isClosed();
     }
     
     private void setStatus(String status) {
@@ -105,18 +102,22 @@ public class Server extends Observable implements Runnable, ConnectionDelegate {
     public List<Connection> getConnections() {
         return connections;
     }
+    
+    private class ServerConnectionDelegate implements ConnectionDelegate {
 
-    @Override
-    public void closed(Connection connection) {
-        connections.remove(connection);
-        setChanged();
-        notifyObservers();
-    }
+        @Override
+        public void closed(Connection connection) {
+            connections.remove(connection);
+            setChanged();
+            notifyObservers();
+        }
 
-    @Override
-    public void statusChanged(Connection connection) {
-        setChanged();
-        notifyObservers();
+        @Override
+        public void statusChanged(Connection connection) {
+            setChanged();
+            notifyObservers();
+        }
+
     }
     
 }
